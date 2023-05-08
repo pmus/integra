@@ -25,7 +25,7 @@ default_poll_timeout_sec = 5
 default_long_sleep_sec = 10
 
 
-def myasync(func):
+def myasync(func) -> None:
     """Useful async decorator"""
 
     @wraps(func)
@@ -54,7 +54,7 @@ class ServiceProxy:
         self.client_update_service_data()
         self.poller = zmq.Poller()
 
-    def client_update_service_data(self):
+    def client_update_service_data(self) -> None:
         """
         Updates service data and creates ZMQ proxy.
         """
@@ -138,7 +138,7 @@ class Integra:
     Integra is a Zeroconf discovery layer between 0MQ services.
     """
 
-    def __init__(self, zmq_port=None, local_only=False, debug=False):
+    def __init__(self, zmq_port=None, local_only=False, debug=False) -> None:
         """
         Initialize Integra object.
 
@@ -171,7 +171,7 @@ class Integra:
         self.server_loop()
 
     @myasync
-    def server_loop(self):
+    def server_loop(self) -> None:
         """
         Server side of ZMQ.
         """
@@ -218,7 +218,7 @@ class Integra:
         service_type: str,
         name: str,
         state_change: ServiceStateChange,
-    ):
+    ) -> None:
         """
         Callback function for Zeroconf service state changes.
 
