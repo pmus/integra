@@ -10,9 +10,9 @@ You can share your Python classes in Bonjour style!
 Server:
 ```
 from integra import ipc
-import MySharedClass
+import MySharedClass # Use anything
 shared_class = MySharedClass()
-ipc['shared_class'] = shared_class # We share it
+ipc["shared_class"] = shared_class # We share it
 while True:
     ...
 ```
@@ -20,8 +20,13 @@ while True:
 Client (any machine on LAN or localhost):
 ```
 from integra import ipc
-remote_shared = ipc["shared_lass"]
+remote_shared = ipc["shared_class"]
 result = remote_shared.awesome_method()
 ```
 That's all, you find your class or service by name and make calls like it's local.
 Please note that security is on your own.
+
+## How to install?
+```
+pip3 install git+https://github.com/pmus/interga.git#egg=integra
+```
