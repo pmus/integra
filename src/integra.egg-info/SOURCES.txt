@@ -1,9 +1,0 @@
-pyproject.toml
-src/__init__.py
-src/integra.py
-src/integra.egg-info/PKG-INFO
-src/integra.egg-info/SOURCES.txt
-src/integra.egg-info/dependency_links.txt
-src/integra.egg-info/top_level.txt
-src/tests/receive.py
-src/tests/serve.py
