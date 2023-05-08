@@ -75,7 +75,7 @@ class ServiceProxy:
             else "127.0.0.1"
         )
         self.remote_port = self.service_data["port"]
-        logger.info("Creating ZMQ proxy at: %s:%s", self.remote_ip, self.remote_port)
+        logger.info(f"Creating ZMQ proxy at: {self.remote_ip}:{self.remote_port}")
         self.socket.setsockopt(zmq.LINGER, 0)  # Add timeout feature
         self.socket.connect(f"tcp://{self.remote_ip}:{self.remote_port}")
 
