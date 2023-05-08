@@ -28,5 +28,5 @@ Please note that security is on your own.
 
 ## How to install?
 ```
-pip3 install git+https://github.com/pmus/interga.git#egg=integra
+pip3 install git+https://github.com/pmus/integra.git#egg=integra
 ```
