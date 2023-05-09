@@ -6,7 +6,7 @@
 and [Python-zeroconf](https://python-zeroconf.readthedocs.io/en/latest/)
 
 You can share your Python classes in Bonjour style!
-(ln 250 lines of code only)
+(ln ~230 lines of code only)
 
 ### How does it work?
 
