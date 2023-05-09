@@ -7,12 +7,13 @@ from threading import Thread
 
 __version__ = "0.0.2"
 system_hostname: str = socket.gethostname()
-default_short_sleep_sec: float = 0.3
+default_short_sleep_sec: float = 0.1
 default_poll_timeout_sec: int = 3
 default_wait_timeout: int = 10
 
 
 def myasync(func) -> None:
+
     @wraps(func)
     def async_func(*args, **kwargs):
         func_hl = Thread(target=func, args=args, kwargs=kwargs)
@@ -24,6 +25,7 @@ def myasync(func) -> None:
 
 
 class ServiceProxy(object):
+
     def __init__(self, integra_instance, service_name) -> None:
         self.integra_instance: Integra = integra_instance
         self.service_name: str = service_name
@@ -41,17 +43,15 @@ class ServiceProxy(object):
                 logger.error("Can't renew socket.")  # Windows case
                 time.sleep(default_poll_timeout_sec)
                 pass
-        self.remote_ip = (
-            self.service_data["ip"]
-            if self.service_data["ip"] != self.integra_instance.ip
-            else "127.0.0.1"
-        )
+        self.remote_ip = (self.service_data["ip"]
+                          if self.service_data["ip"] != self.integra_instance.ip else "127.0.0.1")
         self.remote_port = self.service_data["port"]
         logger.info(f"Creating ZMQ proxy at: {self.remote_ip}:{self.remote_port}")
         self.socket.setsockopt(zmq.LINGER, 0)  # Add timeout feature
         self.socket.connect(f"tcp://{self.remote_ip}:{self.remote_port}")
 
     def __getattr__(self, attr) -> object:
+
         def callable(*args, **kwargs):
             res: object = self.method_missing(attr, *args, **kwargs)
             return res
@@ -59,22 +59,19 @@ class ServiceProxy(object):
         return callable
 
     def method_missing(self, attr, *args, **kwargs) -> object:
-        request: dict = dict(
-            {
-                "service": self.service_name,
-                "attr": attr,
-                "args": args,
-                "kwargs": kwargs,
-            }
-        )
+        request: dict = dict({
+            "service": self.service_name,
+            "attr": attr,
+            "args": args,
+            "kwargs": kwargs,
+        })
 
         self.socket.send_pyobj(request)
         recv: dict = dict()
         poller = zmq.Poller()
         poller.register(self.socket, zmq.POLLIN)
         if poller.poll(default_poll_timeout_sec * 1000):
-            recv = self.socket.recv_pyobj()
-            error = recv.get("error", None)
+            recv, error = self.socket.recv_pyobj(), recv.get("error", None)
             if error:
                 raise error
 
@@ -89,6 +86,7 @@ class ServiceProxy(object):
 
 
 class Integra(object):
+
     def __init__(self, zmq_port=None, local_only=False, debug=False) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.settimeout(0)
@@ -113,8 +111,7 @@ class Integra(object):
 
     @myasync
     def server_loop(self) -> None:
-        """Server side of ZMQ"""
-        addr: str = f"tcp://{self.zmq_addr}:*"  # Take any free port
+        addr: str = f"tcp://{self.zmq_addr}:*"  # Server-side ZMQ, take a free port
         self.socket.bind(addr)
         real_endpoint = self.socket.getsockopt(zmq.LAST_ENDPOINT).decode()
         logger.success(f"Integra: started. ZMQ serves at {real_endpoint}")
@@ -135,9 +132,7 @@ class Integra(object):
             try:
                 service_obj: object = self.dict_objects[service]
             except Exception as e:
-                reply["error"] = RuntimeError(
-                    f"Error {e}: Service object {service} missing."
-                )
+                reply["error"] = RuntimeError(f"Error {e}: Service object {service} missing.")
 
             service_attr = getattr(service_obj, attr, None)
             if not service_attr:
@@ -161,20 +156,15 @@ class Integra(object):
         """state_change in: ServiceStateChange.Added, .Updated or .Removed"""
         service_info = zeroconf.get_service_info(service_type, name)
         info: dict = self.service_info_to_dict(service_info) if service_info else dict()
-
-        if info.get("uuid", None) == self.uuid:
-            return None  # This is myself
-
         logger.info(f"Service {name} -> {service_type} state change: {state_change}")
 
-        if state_change is ServiceStateChange.Removed:
+        if info.get("uuid", None) == self.uuid:
+            return  # This is myself
+        elif state_change is ServiceStateChange.Removed:
             self.forget_service(name)
-            return
-
-        if info.get("services", None):  # We got some new info?
+        elif state_change is ServiceStateChange.Added:
             for service_name in info["services"]:
-                if service_name not in list(self.dict_services):
-                    self.dict_services[service_name] = info
+                self.dict_services[service_name] = info
 
     def forget_service(self, name) -> None:
         logger.error(f"deleting {name} from {self.dict_services}")
@@ -186,12 +176,10 @@ class Integra(object):
         res["port"] = int(service_info.port)
         res["server"] = service_info.server
         properties: dict = service_info.properties
-        properties = dict(
-            {
-                key.decode("utf-8"): value.decode("utf-8")
-                for key, value in properties.items()
-            }
-        )  # Properties transmitted in binary, we decode...
+        properties = dict({
+            key.decode("utf-8"): value.decode("utf-8")
+            for key, value in properties.items()
+        })  # Properties transmitted in binary, we decode...
         properties["services"] = json.loads(properties["services"].replace("'", '"'))
         # This is not my fault, but zeroconf passes them this way ---------^^^
         res.update(properties)
@@ -211,10 +199,7 @@ class Integra(object):
             server=f"{system_hostname}.local.",
         )
 
-        self.zeroconf.register_service(
-            info
-        ) if not self.dict_objects else self.zeroconf.update_service(info)
-
+        self.zeroconf.register_service(info) if not self.dict_objects else self.zeroconf.update_service(info)
         logger.success(f"Serving '{service_name}' as {self.uuid}...")
 
     def get_service_proxy(self, service_name: str) -> ServiceProxy:
@@ -225,9 +210,7 @@ class Integra(object):
         logger.info(f"Service '{service_name}' found as {service_item}")
         return ServiceProxy(self, service_name)
 
-    def get_service_wait(
-        self, service_name: str, timeout: int = default_wait_timeout
-    ) -> ServiceProxy:
+    def get_service_wait(self, service_name: str, timeout: int = default_wait_timeout) -> ServiceProxy:
         time_waited: int = 0
         res: ServiceProxy = None
         logger.info(f"Waiting for service {service_name}, timeout={timeout}...")
@@ -246,4 +229,4 @@ class Integra(object):
         return self.get_service_wait(service_name)
 
 
-ipc: Integra = Integra() # You can just: from integra import ipc
+ipc: Integra = Integra()  # You can just: from integra import ipc

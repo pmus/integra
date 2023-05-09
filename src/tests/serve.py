@@ -7,6 +7,8 @@ import sys
 sys.path.append("..")
 from integra import ipc
 
+sleep_sec = 3
+
 
 class DemoClass(object):
     """
@@ -30,8 +32,8 @@ def server_main():
     ipc["democlass"] = DemoClass()  # or: ipc.add_service("democlass", demo)
 
     try:
-        logger.info("Sleeping 3 sec.")
-        sleep(300)
+        logger.info(f"Sleeping {sleep_sec} sec.")
+        sleep(sleep_sec)
     except KeyboardInterrupt:
         pass
         exit(0)
