@@ -40,9 +40,8 @@ class ServiceProxy(object):
             try:
                 self.socket: zmq.Context.socket = self.context.socket(zmq.REQ)
             except zmq.error.ZMQError:
-                logger.error("Can't renew socket.")  # Windows case
+                logger.error("Can't renew socket.")  # Special Windows case
                 time.sleep(default_poll_timeout_sec)
-                pass
         self.remote_ip = (self.service_data["ip"]
                           if self.service_data["ip"] != self.integra_instance.ip else "127.0.0.1")
         self.remote_port = self.service_data["port"]
@@ -76,7 +75,7 @@ class ServiceProxy(object):
                 raise error
 
         else:
-            logger.error(f"Service {self.service_name} lost.")
+            logger.warning(f"Service {self.service_name} lost.")
             self.integra_instance.forget_service(self.service_name)
             logger.info(f"Waiting for service {self.service_name}.")
             while not self.service_name in self.integra_instance.dict_services:
@@ -87,7 +86,7 @@ class ServiceProxy(object):
 
 class Integra(object):
 
-    def __init__(self, zmq_port=None, local_only=False, debug=False) -> None:
+    def __init__(self, zmq_port: int = 0, local_only=False, debug=False) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.settimeout(0)
             s.connect(("10.254.254.254", 1))  # on error,
@@ -97,7 +96,7 @@ class Integra(object):
         self.dict_objects: dict = dict()  # What I offer
         self.dict_services: dict = dict()  # What do neighbours offer
         self.zmq_addr: str = "127.0.0.1" if local_only else "*"
-        self.zmq_port: int = 0
+        self.zmq_port = zmq_port
         self.uuid: str = f"{uuid4()}"
         self.desc: dict = dict({"uuid": self.uuid, "services": [], "ip": self.ip})
         self.context: zmq.Context = zmq.Context()
@@ -137,12 +136,7 @@ class Integra(object):
             service_attr = getattr(service_obj, attr, None)
             if not service_attr:
                 reply["error"] = AttributeError(f"No attribute {attr} in {service}.")
-
-            if callable(service_attr):
-                res = service_attr(*args, **kwargs)
-            else:
-                res = service_attr
-
+            res = service_attr(*args, **kwargs) if callable(service_attr) else service_attr
             reply["result"] = res
             self.socket.send_pyobj(reply)
 
@@ -167,7 +161,7 @@ class Integra(object):
                 self.dict_services[service_name] = info
 
     def forget_service(self, name) -> None:
-        logger.error(f"deleting {name} from {self.dict_services}")
+        logger.info(f"Deleting {name} from {self.dict_services}")
         del self.dict_services[name]
 
     def service_info_to_dict(self, service_info: ServiceInfo) -> dict:
