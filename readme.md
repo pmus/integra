@@ -2,9 +2,12 @@
 ## Small convenient IPC based on
 
 [![N|Solid](https://zeromq.org/images/logo.gif)](https://zeromq.org/)
+
 and [Python-zeroconf](https://python-zeroconf.readthedocs.io/en/latest/)
 
 You can share your Python classes in Bonjour style!
+(ln 250 lines of code only)
+
 ### How does it work?
 
 Server:

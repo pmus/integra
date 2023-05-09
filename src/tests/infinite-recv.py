@@ -17,11 +17,12 @@ def bench():
     var = demo.some_var()
     logger.info(f"some_var is: {var}")
 
-    start = time()
-    samples = 100_000
-    ...
-    for n in range(0, samples):
+    n = 0
+    while True:
         rnd = demo.awesome_method()
+        print(f"Request #{n} ok, got {rnd}")
+        n += 1
+        sleep(1)
     logger.info(f"Last awesome_method is: {rnd}")
     finish = time()
     seconds = finish - start

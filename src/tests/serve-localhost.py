@@ -5,7 +5,9 @@ from os import _exit as exit
 import sys
 
 sys.path.append("..")
-from integra import ipc
+from integra import Integra
+
+ipc = Integra(local_only=True)  # only localhost shares
 
 
 class DemoClass(object):
@@ -30,8 +32,8 @@ def server_main():
     ipc["democlass"] = DemoClass()  # or: ipc.add_service("democlass", demo)
 
     try:
-        logger.info("Sleeping 3 sec.")
-        sleep(300)
+        logger.info("Sleeping 60 sec.")
+        sleep(60)
     except KeyboardInterrupt:
         pass
         exit(0)
