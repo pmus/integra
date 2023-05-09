@@ -31,5 +31,9 @@ Please note that security is on your own.
 
 ## How to install?
 ```
+pip3 install integra
+```
+- OR -
+```
 pip3 install git+https://github.com/pmus/integra.git#egg=integra
 ```
