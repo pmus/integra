@@ -14,4 +14,8 @@ logger.success(
 )
 assert awesome == "QWERTY"
 assert desrever == "CBA"
+ipc.run = False
+import time
+print('Kill')
+time.sleep(100)
 os_exit(0)

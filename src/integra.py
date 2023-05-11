@@ -11,7 +11,6 @@ default_wait_timeout_sec: int = 10
 
 
 def myasync(func) -> None:
-
     @wraps(func)
     def async_func(*args, **kwargs):
         func_hl = Thread(target=func, args=args, kwargs=kwargs)
@@ -23,7 +22,6 @@ def myasync(func) -> None:
 
 
 class ServiceProxy(object):
-
     def __init__(self, integra_instance: object, service_name: str) -> None:
         self.integra_instance: Integra = integra_instance
         self.service_name: str = service_name
@@ -48,7 +46,6 @@ class ServiceProxy(object):
         self.socket.connect(f"tcp://{self.remote_ip}:{self.remote_port}")
 
     def __getattr__(self, attr) -> object:
-
         def callable(*args, **kwargs):
             res: object = self.method_missing(attr, *args, **kwargs)
             return res
@@ -82,10 +79,9 @@ class ServiceProxy(object):
 
 
 class Integra(object):
-
     def __init__(self, zmq_port: int = 0, local_only=False) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.connect(("10.254.254.254", 1))  #s.settimeout(0)
+            s.connect(("10.254.254.254", 1))  # s.settimeout(0)
             self.ip: str = s.getsockname()[0]  # on error, we don't mute it.
         self.run: bool = True
         self.zeroconf: Zeroconf = Zeroconf()
@@ -117,9 +113,9 @@ class Integra(object):
             service, attr, args, kwargs = (request[key] for key in ["service", "attr", "args", "kwargs"])
             service_obj: object = self.dict_objects.get(service, None)
             service_attr: object = getattr(service_obj, attr, None)
-            reply["error"] = RuntimeError(f"Error: Service object {service} missing.") if not service_obj else None
-            reply["error"] = AttributeError(f"No attribute {attr} in {service}.") if not service_attr else None
-            reply["result"] = service_attr(*args, **kwargs) if callable(service_attr) else service_attr
+            reply["error"] = (RuntimeError(f"Error: Service object {service} missing.") if not service_obj else None)
+            reply["error"] = (AttributeError(f"No attribute {attr} in {service}.") if not service_attr else None)
+            reply["result"] = (service_attr(*args, **kwargs) if callable(service_attr) else service_attr)
             self.socket.send_pyobj(reply)
 
     def on_service_state_change(
@@ -149,12 +145,8 @@ class Integra(object):
     def service_info_to_dict(self, service_info: ServiceInfo) -> dict:
         res: dict = {key: getattr(service_info, key, None) for key in ["name", "port", "server"]}
         properties: dict = service_info.properties
-        properties = dict({
-            key.decode("utf-8"): value.decode("utf-8")
-            for key, value in properties.items()
-        })  # Properties transmitted in binary, we decode...
-        properties["services"] = json.loads(properties["services"].replace(
-            "'", '"'))  # Not my fault, but zeroconf passes them this way
+        properties = {key.decode("utf-8"): value.decode("utf-8") for key, value in properties.items()}
+        properties["services"] = json.loads(properties["services"].replace("'", '"'))
         res.update(properties)
         return res
 
