@@ -140,8 +140,9 @@ class Integra(object):
 
     def forget_service(self, name) -> None:
         logger.info(f"Deleting {name} from {self.dict_services}")
-        del self.dict_services[name]
+        self.dict_services.pop(name, None) # Instead of 'del''
 
+    @logger.catch
     def service_info_to_dict(self, service_info: ServiceInfo) -> dict:
         res: dict = {key: getattr(service_info, key, None) for key in ["name", "port", "server"]}
         properties: dict = service_info.properties
